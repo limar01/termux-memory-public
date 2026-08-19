@@ -1,0 +1,10 @@
+{
+  "explanation": "create limar folder in storage - ZERO TOUCH TEST",
+  "commands": [
+    {"action": "make_dir", "path": "~/storage/shared/limar"},
+    {"action": "make_dir", "path": "~/storage/limar"},
+    {"action": "make_dir", "path": "/storage/emulated/0/limar"},
+    {"action": "list_dir", "path": "~/storage/shared"}
+  ],
+  "executed": false
+}
