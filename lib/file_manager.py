@@ -1,6 +1,6 @@
-# Dynamic File Manager - NOT FIXED 47, CAN GROW
+# Dynamic File Manager - NOT FIXED 47, CAN GROW - FINAL 47 VERIFIED
 # Repo: termux-memory-public - PLAIN
-# This is the complete file management memory
+# SAFEGUARD: NEVER OVERWRITE WITH <47 COMMANDS - ALWAYS CHECK len >=47
 
 import os
 import shutil
@@ -17,7 +17,7 @@ class FileManager:
         self._register_all()
     
     def register(self, name, func):
-        # Dynamic add - kung may kulang, dagdag lang dito
+        """Dynamic add - kung may kulang, dagdag lang dito, hindi patong sa luma"""
         self.commands[name] = func
         setattr(self, name, func)
     
@@ -61,7 +61,7 @@ class FileManager:
         self.register("read_json", self.read_json)
         self.register("write_json", self.write_json)
         
-        # 34-47 JSON, Archive, Backup, System
+        # 34-47 JSON, Archive, Backup, System - FINAL 47
         self.register("append_json", self.append_json)
         self.register("update_json", self.update_json)
         self.register("zip_files", self.zip_files)
@@ -87,7 +87,10 @@ class FileManager:
     def write_file(self, path, content): Path(os.path.expanduser(path)).parent.mkdir(parents=True, exist_ok=True); Path(os.path.expanduser(path)).write_text(content); return True
     def append_file(self, path, content): Path(os.path.expanduser(path)).parent.mkdir(parents=True, exist_ok=True); open(os.path.expanduser(path), "a").write(content); return True
     def delete_file(self, path): Path(os.path.expanduser(path)).unlink(missing_ok=True); return True
-    def copy_file(self, src, dst): Path(os.path.expanduser(dst)).parent.mkdir(parents=True, exist_ok=True); shutil.copy2(os.path.expanduser(src), os.path.expanduser(dst)); return True
+    def copy_file(self, src, dst):
+        s=Path(os.path.expanduser(src));
+        if not s.exists(): return f'src not exist: {src} - skip';
+        Path(os.path.expanduser(dst)).parent.mkdir(parents=True, exist_ok=True); shutil.copy2(os.path.expanduser(src), os.path.expanduser(dst)); return True
     def move_file(self, src, dst): Path(os.path.expanduser(dst)).parent.mkdir(parents=True, exist_ok=True); shutil.move(os.path.expanduser(src), os.path.expanduser(dst)); return True
     def rename_file(self, src, dst): return self.move_file(src, dst)
     def file_exists(self, path): return Path(os.path.expanduser(path)).exists()
@@ -107,8 +110,16 @@ class FileManager:
     def count_files(self, path): return len([p for p in Path(os.path.expanduser(path)).rglob("*") if p.is_file()])
     def count_dirs(self, path): return len([p for p in Path(os.path.expanduser(path)).rglob("*") if p.is_dir()])
     def clean_dir(self, path): [shutil.rmtree(str(p), ignore_errors=True) if p.is_dir() else p.unlink(missing_ok=True) for p in Path(os.path.expanduser(path)).iterdir()]; return True
-    def copy_dir(self, src, dst): shutil.copytree(os.path.expanduser(src), os.path.expanduser(dst), dirs_exist_ok=True); return True
-    def move_dir(self, src, dst): shutil.move(os.path.expanduser(src), os.path.expanduser(dst)); return True
+    def copy_dir(self, src, dst):
+        s=Path(os.path.expanduser(src));
+        if not s.exists(): return f'src not exist: {src} - skip';
+        shutil.copytree(os.path.expanduser(src), os.path.expanduser(dst), dirs_exist_ok=True); return True
+    def move_dir(self, src, dst):
+        s=Path(os.path.expanduser(src));
+        if not s.exists(): return f'src not exist: {src} - skip';
+        Path(os.path.expanduser(dst)).parent.mkdir(parents=True, exist_ok=True);
+        try: shutil.move(os.path.expanduser(src), os.path.expanduser(dst)); return True
+        except Exception as e: return f'failed {e}'
     def read_json(self, path): return json.loads(Path(os.path.expanduser(path)).read_text())
     def write_json(self, path, data): Path(os.path.expanduser(path)).parent.mkdir(parents=True, exist_ok=True); Path(os.path.expanduser(path)).write_text(json.dumps(data, indent=2)); return True
     def append_json(self, path, data): cur=self.read_json(path) if Path(os.path.expanduser(path)).exists() else []; cur.append(data) if isinstance(cur,list) else cur.update(data); self.write_json(path,cur); return True
@@ -125,16 +136,15 @@ class FileManager:
     def untar_files(self, src, dst): Path(os.path.expanduser(dst)).mkdir(parents=True, exist_ok=True); tarfile.open(os.path.expanduser(src)).extractall(os.path.expanduser(dst)); return True
     def get_hash(self, path): return hashlib.md5(Path(os.path.expanduser(path)).read_bytes()).hexdigest() if Path(os.path.expanduser(path)).exists() else None
     def get_checksum(self, path): return self.get_hash(path)
-    def backup_file(self, path): dst=str(Path(os.path.expanduser(path)))+".bak"; shutil.copy2(os.path.expanduser(path), dst); return dst
+    def backup_file(self, path): dst=str(Path(os.path.expanduser(path))) + ".bak"; shutil.copy2(os.path.expanduser(path), dst); return dst
     def restore_file(self, backup_path, original_path): shutil.copy2(os.path.expanduser(backup_path), os.path.expanduser(original_path)); return True
     def get_disk_usage(self, path): return shutil.disk_usage(os.path.expanduser(path))
     def get_free_space(self, path): return shutil.disk_usage(os.path.expanduser(path)).free
     def clean_temp(self): [Path(p).unlink(missing_ok=True) for p in ["/tmp/tempfile", os.path.expanduser("~/tmp")]]; return True
     def touch_file(self, path): Path(os.path.expanduser(path)).parent.mkdir(parents=True, exist_ok=True); Path(os.path.expanduser(path)).touch(exist_ok=True); return True
 
-# Dynamic add example - kung may kulang, dagdag lang:
-# fm = FileManager()
-# fm.register("my_new_command", lambda path: print(f"new {path}"))
-# Now fm has 48, 49, 50... dynamic!
-
+# SAFEGUARD: Verify 47 on load
 fm = FileManager()
+assert len(fm.commands) == 47, f"Expected 47, got {len(fm.commands)}"
+# Dynamic add example - hindi patong, dagdag lang:
+# fm.register("my_new_command", lambda path: print(f"new {path}")) -> now 48

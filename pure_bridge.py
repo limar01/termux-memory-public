@@ -1,3 +1,4 @@
+
 """
 pure_bridge.py - NUMBER 2 PURE PYTHON BRIDGE (100% WORKING - FINAL) - FIXED MISSING REPO
 Repo: termux-memory-public - PLAIN
@@ -31,6 +32,7 @@ def ensure_bridge_repo():
     if not BRIDGE_REPO.exists():
         print(f"[BRIDGE] Creating {BRIDGE_REPO}...")
         BRIDGE_REPO.mkdir(parents=True, exist_ok=True)
+        # Try clone from github if not git repo
         if not (BRIDGE_REPO / ".git").exists():
             print("[BRIDGE] Cloning metaaitermuxbridge from GitHub...")
             os.system(f"cd {Path.home()} && git clone https://github.com/limar01/metaaitermuxbridge.git 2>/dev/null || echo 'clone failed, will init'")
@@ -46,7 +48,7 @@ def git_pull():
 
 def git_push(msg="auto push result"):
     if (BRIDGE_REPO / ".git").exists():
-        os.system(f"cd {BRIDGE_REPO} && git add. && git commit -m '{msg}' --quiet 2>/dev/null && git push --quiet 2>/dev/null || echo '[BRIDGE] push skip - local only'")
+        os.system(f"cd {BRIDGE_REPO} && git add . && git commit -m '{msg}' --quiet 2>/dev/null && git push --quiet 2>/dev/null || echo '[BRIDGE] push skip - local only'")
 
 def execute_task(task_data):
     results = []
@@ -64,7 +66,7 @@ def execute_task(task_data):
                 else:
                     res = func(cmd.get("path") or cmd.get("src") or "")
                 results.append({"action": action, "status": "SUCCESS", "result": str(res)})
-                print(f" -> {action} {cmd.get('path') or cmd.get('src','')} = SUCCESS")
+                print(f"  -> {action} {cmd.get('path') or cmd.get('src','')} = SUCCESS")
             elif action == "exec":
                 ret = subprocess.run(cmd.get("command"), shell=True, capture_output=True, text=True)
                 results.append({"action": "exec", "status": "SUCCESS" if ret.returncode==0 else "FAILED", "output": ret.stdout[:500]})
@@ -72,7 +74,7 @@ def execute_task(task_data):
                 results.append({"action": action, "status": "FAILED", "error": f"unknown {action}"})
         except Exception as e:
             results.append({"action": action, "status": "FAILED", "error": str(e)})
-            print(f" -> {action} FAILED: {e}")
+            print(f"  -> {action} FAILED: {e}")
     return results
 
 def main_loop():
@@ -99,6 +101,8 @@ def main_loop():
                     print("[TASK DONE + PUSHED]")
                 except Exception as e:
                     print(f"TASK FAILED: {e}")
+                    import traceback
+                    traceback.print_exc()
             QUEUE_DIR.mkdir(parents=True, exist_ok=True)
             for task_file in sorted(QUEUE_DIR.glob("task_*.json")):
                 try:

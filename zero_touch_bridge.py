@@ -1,13 +1,29 @@
+
 """
 zero_touch_bridge.py - ZERO COPY-PASTE BRIDGE - FINAL
 Utos lang si boss sa chat, auto execute sa Termux - NO COPY PASTE!
+
+Flow:
+1. Boss: "gawa ka folder limar" (sa Meta AI chat lang)
+2. Meta AI: gumagawa ng ~/termux-memory-public/autotask.json (47 verified)
+3. Itong bridge: auto git pull termux-memory-public every 5 sec + auto execute
+
+Walang copy-paste ng code! Utos lang!
 """
-import time, json, os, subprocess
+
+import time
+import json
+import os
+import subprocess
 from pathlib import Path
+
 MEMORY_REPO = Path.home() / "termux-memory-public"
 TASK_FILE_MEMORY = MEMORY_REPO / "autotask.json"
+BRIDGE_REPO = Path.home() / "metaaitermuxbridge"
 RESULT_FILE = MEMORY_REPO / "result.json"
 DONE_DIR = MEMORY_REPO / "done_tasks"
+
+# Import file_manager
 try:
     from lib.file_manager import FileManager
     fm = FileManager()
@@ -16,11 +32,13 @@ except:
     sys.path.append(str(MEMORY_REPO))
     from lib.file_manager import FileManager
     fm = FileManager()
+
 def git_pull_memory():
     if MEMORY_REPO.exists() and (MEMORY_REPO / ".git").exists():
         os.system(f"cd {MEMORY_REPO} && git pull --quiet 2>/dev/null")
         return True
     return False
+
 def execute_task(task_data):
     print(f"\n[ZERO-TOUCH TASK] {task_data.get('explanation','')}")
     results = []
@@ -38,47 +56,70 @@ def execute_task(task_data):
                 else:
                     res = func(cmd.get("path") or cmd.get("src") or "")
                 results.append({"action": action, "status": "SUCCESS", "result": str(res)})
-                print(f" ✅ {action} {cmd.get('path') or cmd.get('src','')} = SUCCESS")
+                print(f"  ✅ {action} {cmd.get('path') or cmd.get('src','')} = SUCCESS")
             elif action == "exec":
                 ret = subprocess.run(cmd.get("command"), shell=True, capture_output=True, text=True)
                 results.append({"action": "exec", "status": "SUCCESS" if ret.returncode==0 else "FAILED", "output": ret.stdout[:500]})
+                print(f"  ✅ exec = {ret.stdout[:100]}")
             else:
                 results.append({"action": action, "status": "FAILED", "error": f"unknown {action}"})
+                print(f"  ❌ {action} FAILED unknown")
         except Exception as e:
             results.append({"action": action, "status": "FAILED", "error": str(e)})
-            print(f" ❌ {action} FAILED: {e}")
+            print(f"  ❌ {action} FAILED: {e}")
     return results
+
 def main_loop():
     MEMORY_REPO.mkdir(parents=True, exist_ok=True)
     DONE_DIR.mkdir(parents=True, exist_ok=True)
     print("[ZERO-TOUCH BRIDGE] - UTOS LANG SI BOSS, NO COPY-PASTE!")
-    print(f"Commands registered: {len(fm.commands)} (47 FINAL)")
+    print(f"Commands registered: {len(fm.commands)} (47 FINAL, can grow)")
     print(f"Watching: {TASK_FILE_MEMORY}")
+    print(f"Memory repo: {MEMORY_REPO}")
+    print("\nBoss utos lang sa chat: 'gawa ka folder limar'")
+    print("Ako auto execute dito!\n")
+    
     last_task_mtime = 0
+    
     while True:
         try:
+            # Auto git pull para makuha latest autotask.json galing kay Meta AI
             git_pull_memory()
+            
             if TASK_FILE_MEMORY.exists():
                 mtime = TASK_FILE_MEMORY.stat().st_mtime
-                if mtime!= last_task_mtime:
+                if mtime != last_task_mtime:
                     last_task_mtime = mtime
                     try:
                         data = json.loads(TASK_FILE_MEMORY.read_text())
+                        # Check kung hindi pa executed
                         if not data.get("executed"):
                             results = execute_task(data)
+                            
+                            # Mark as executed at i-save sa done
                             data["executed"] = True
                             data["executed_at"] = time.time()
                             RESULT_FILE.write_text(json.dumps({"task": data.get("explanation"), "results": results, "timestamp": time.time()}, indent=2))
+                            
+                            # Move to done
                             done_file = DONE_DIR / f"done_{int(time.time())}.json"
                             TASK_FILE_MEMORY.rename(done_file)
+                            
+                            # Commit result
                             if (MEMORY_REPO / ".git").exists():
-                                os.system(f"cd {MEMORY_REPO} && git add. && git commit -m 'executed: {data.get('explanation','task')}' --quiet 2>/dev/null && git push --quiet 2>/dev/null")
+                                os.system(f"cd {MEMORY_REPO} && git add . && git commit -m 'executed: {data.get('explanation','task')}' --quiet 2>/dev/null && git push --quiet 2>/dev/null")
+                            
                             print(f"\n[✅ TASK DONE] {data.get('explanation')}")
                             print("Waiting for next utos...\n")
+                    except json.JSONDecodeError:
+                        print("[WAIT] autotask.json invalid json, waiting...")
                     except Exception as e:
                         print(f"[ERROR] {e}")
+                        import traceback
+                        traceback.print_exc()
         except Exception as e:
             print(f"LOOP ERROR: {e}")
         time.sleep(5)
+
 if __name__ == "__main__":
     main_loop()
