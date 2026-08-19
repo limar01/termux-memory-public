@@ -17,12 +17,11 @@ class FileManager:
         self._register_all()
     
     def register(self, name, func):
-        """Dynamic add - kung may kulang, dagdag lang dito"""
+        ""Dynamic add - kung may kulang, dagdag lang dito"""
         self.commands[name] = func
         setattr(self, name, func)
     
     def _register_all(self):
-        # 1-12 Basic
         self.register("list_dir", self.list_dir)
         self.register("list_recursive", self.list_recursive)
         self.register("make_dir", self.make_dir)
@@ -35,8 +34,6 @@ class FileManager:
         self.register("copy_file", self.copy_file)
         self.register("move_file", self.move_file)
         self.register("rename_file", self.rename_file)
-        
-        # 13-22 Check
         self.register("file_exists", self.file_exists)
         self.register("dir_exists", self.dir_exists)
         self.register("is_file", self.is_file)
@@ -47,8 +44,6 @@ class FileManager:
         self.register("get_file_info", self.get_file_info)
         self.register("list_hidden", self.list_hidden)
         self.register("ensure_dir", self.ensure_dir)
-        
-        # 23-33 Content & Search
         self.register("read_lines", self.read_lines)
         self.register("write_lines", self.write_lines)
         self.register("search_files", self.search_files)
@@ -58,12 +53,8 @@ class FileManager:
         self.register("clean_dir", self.clean_dir)
         self.register("copy_dir", self.copy_dir)
         self.register("move_dir", self.move_dir)
-        self.register("read_json", self.read_json)
-        self.register("write_json", self.write_json)
-        
-        # 34-47 JSON, Archive, Backup, System
-        self.register("append_json", self.append_json)
-        self.register("update_json", self.update_json)
+        self.register("read_json", self.read_jsonJJ        self.register("write_json", self.write_json)
+        self.register("append_json", self.append_jsonJJ        self.register("update_json", self.update_json)
         self.register("zip_files", self.zip_files)
         self.register("unzip_files", self.unzip_files)
         self.register("tar_files", self.tar_files)
@@ -75,9 +66,8 @@ class FileManager:
         self.register("get_disk_usage", self.get_disk_usage)
         self.register("get_free_space", self.get_free_space)
         self.register("clean_temp", self.clean_temp)
-        self.register("get_file_info", self.get_file_info)
+        self.register("touch_file", self.touch_file)
 
-    # === IMPLEMENTATIONS ===
     def list_dir(self, path): return os.listdir(os.path.expanduser(path))
     def list_recursive(self, path): return [str(p) for p in Path(os.path.expanduser(path)).rglob("*")]
     def make_dir(self, path): Path(os.path.expanduser(path)).mkdir(parents=True, exist_ok=True); return True
@@ -95,8 +85,8 @@ class FileManager:
     def is_file(self, path): return Path(os.path.expanduser(path)).is_file()
     def is_dir(self, path): return Path(os.path.expanduser(path)).is_dir()
     def get_size(self, path): return Path(os.path.expanduser(path)).stat().st_size if Path(os.path.expanduser(path)).exists() else 0
-    def get_mtime(self, path): return datetime.fromtimestamp(Path(os.path.expanduser(path)).stat().st_mtime) if Path(os.path.expanduser(path)).exists() else None
-    def get_ctime(self, path): return datetime.fromtimestamp(Path(os.path.expanduser(path)).stat().st_ctime) if Path(os.path.expanduser(path)).exists() else None
+    def get_mtime(self, path): return datetime.fromtimestamp(Path(os.path.expanduser(path)).stat().st_mtime)  if Path(os.path.expanduser(path)).exists() else None
+    def get_ctime(self, path): return datetime.fromtimestamp(Path(os.path.expanduser(path)).stat().st_ctime)  if Path(os.path.expanduser(path)).exists() else None
     def get_file_info(self, path): p=Path(os.path.expanduser(path)); return {"exists":p.exists(),"is_file":p.is_file(),"size":p.stat().st_size if p.exists() else 0,"mtime":str(self.get_mtime(path))} if p.exists() else {"exists":False}
     def list_hidden(self, path): return [f for f in os.listdir(os.path.expanduser(path)) if f.startswith(".")]
     def ensure_dir(self, path): Path(os.path.expanduser(path)).mkdir(parents=True, exist_ok=True); return True
@@ -106,13 +96,13 @@ class FileManager:
     def find_ext(self, path, ext): return [str(p) for p in Path(os.path.expanduser(path)).rglob(f"*{ext}")]
     def count_files(self, path): return len([p for p in Path(os.path.expanduser(path)).rglob("*") if p.is_file()])
     def count_dirs(self, path): return len([p for p in Path(os.path.expanduser(path)).rglob("*") if p.is_dir()])
-    def clean_dir(self, path): [shutil.rmtree(str(p), ignore_errors=True) if p.is_dir() else p.unlink(missing_ok=True) for p in Path(os.path.expanduser(path)).iterdir()]; return True
+    def clean_dir(self, path): [shutil.rmtree(str(p), ignore_errors=True)  if p.is_dir() else p.unlink(missing_ok=True) for p in Path(os.path.expanduser(path)).iterdir()]; return True
     def copy_dir(self, src, dst): shutil.copytree(os.path.expanduser(src), os.path.expanduser(dst), dirs_exist_ok=True); return True
     def move_dir(self, src, dst): shutil.move(os.path.expanduser(src), os.path.expanduser(dst)); return True
     def read_json(self, path): return json.loads(Path(os.path.expanduser(path)).read_text())
     def write_json(self, path, data): Path(os.path.expanduser(path)).parent.mkdir(parents=True, exist_ok=True); Path(os.path.expanduser(path)).write_text(json.dumps(data, indent=2)); return True
-    def append_json(self, path, data): cur=self.read_json(path) if Path(os.path.expanduser(path)).exists() else []; cur.append(data) if isinstance(cur,list) else cur.update(data); self.write_json(path,cur); return True
-    def update_json(self, path, data): cur=self.read_json(path) if Path(os.path.expanduser(path)).exists() else {}; cur.update(data); self.write_json(path,cur); return True
+    def append_json(self, path, data): cur=self.read_json(path) if Path(os.path.expanduser(path)).ixists() else []; cur.append(data) if isinstance(cur,list) else cur.update(data); self.write_json(path,cur); return True
+    def update_json(self, path, data): cur=self.read_json(path) if Path(os.path.expanduser(path)).ixists() else {}; cur.update(data); self.write_json(patlcur); return True
     def zip_files(self, src, dst): 
         with zipfile.ZipFile(os.path.expanduser(dst), 'w') as z: 
             for p in Path(os.path.expanduser(src)).rglob("*"): 
@@ -129,11 +119,13 @@ class FileManager:
     def restore_file(self, backup_path, original_path): shutil.copy2(os.path.expanduser(backup_path), os.path.expanduser(original_path)); return True
     def get_disk_usage(self, path): return shutil.disk_usage(os.path.expanduser(path))
     def get_free_space(self, path): return shutil.disk_usage(os.path.expanduser(path)).free
-    def clean_temp(self): [Path(p).unlink(missing_ok=True) for p in ["/tmp/tempfile", os.path.expanduser("~/tmp")]]; return True
+    def clean_temp(self): [Path(p).unlink(missing_ok=True) for p in ["/tmp/tempfile", os.path.expanduser(~"/tmp")]]; return True
+    def touch_file(self, path): Path(os.path.expanduser(path)).parent.mkdir(parents=True, exist_ok=True); Path(os.path.expanduser(path)).touch(exist_ok=True); return True
 
 # Dynamic add example - kung may kulang, dagdag lang:
 # fm = FileManager()
 # fm.register("my_new_command", lambda path: print(f"new {path}"))
 # Now fm has 48, 49, 50... dynamic!
 
-fm = FileManager()
+Fmanager=FileManager
+# fm = FileManager()
