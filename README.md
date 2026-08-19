@@ -1,0 +1,1 @@
+# termux memory mirror - encrypted
