@@ -1,13 +1,5 @@
 # Dynamic File Manager - NOT FIXED 47, CAN GROW
-# Repo: termux-memory-public - PLAIN
-# This is the complete file management memory
-
-import os
-import shutil
-import json
-import hashlib
-import zipfile
-import tarfile
+import os, shutil, json, hashlib, zipfile, tarfile
 from pathlib import Path
 from datetime import datetime
 
@@ -15,14 +7,10 @@ class FileManager:
     def __init__(self):
         self.commands = {}
         self._register_all()
-
     def register(self, name, func):
-        # Dynamic add - kung may kulang, dagdag lang dito
         self.commands[name] = func
         setattr(self, name, func)
-
     def _register_all(self):
-        # 1-12 Basic
         self.register("list_dir", self.list_dir)
         self.register("list_recursive", self.list_recursive)
         self.register("make_dir", self.make_dir)
@@ -35,8 +23,6 @@ class FileManager:
         self.register("copy_file", self.copy_file)
         self.register("move_file", self.move_file)
         self.register("rename_file", self.rename_file)
-
-        # 13-22 Check
         self.register("file_exists", self.file_exists)
         self.register("dir_exists", self.dir_exists)
         self.register("is_file", self.is_file)
@@ -47,8 +33,6 @@ class FileManager:
         self.register("get_file_info", self.get_file_info)
         self.register("list_hidden", self.list_hidden)
         self.register("ensure_dir", self.ensure_dir)
-        
-        # 23-33 Content & Search
         self.register("read_lines", self.read_lines)
         self.register("write_lines", self.write_lines)
         self.register("search_files", self.search_files)
@@ -60,8 +44,6 @@ class FileManager:
         self.register("move_dir", self.move_dir)
         self.register("read_json", self.read_json)
         self.register("write_json", self.write_json)
-        
-        # 34-47 JSON, Archive, Backup, System
         self.register("append_json", self.append_json)
         self.register("update_json", self.update_json)
         self.register("zip_files", self.zip_files)
@@ -78,13 +60,84 @@ class FileManager:
         self.register("touch_file", self.touch_file)
 
     # === IMPLEMENTATIONS ===
-    def list_dir(self, path): return os.listdir(os.path.expanduser(path))
-    def list_recursive(self, path): return [str(p) for p in Path(os.path.expanduser(path)).rglob("*")]
-    def make_dir(self, path): Path(os.path.expanduser(path)).mkdir(parents=True, exist_ok=True); return True
-    def remove_dir(self, path): shutil.rmtree(os.path.expanduser(path), ignore_errors=True); return True
-    def make_file(self, path, content=""): Path(os.path.expanduser(path)).parent.mkdir(parents=True, exist_ok=True); Path(os.path.expanduser(path)).write_text(content); return True
-    def read_file(self, path): return Path(os.path.expanduser(path)).read_text()
-    def write_file(self, path, content): Path(os.path.expanduser(path)).parent.mkdir(parents=True, exist_ok=True); Path(os.path.expanduser(path)).write_text(content); return True
-    def append_file(self, path, content): Path(os.path.expanduser(path)).parent.mkdir(parents=True, exist_ok=True); open(os.path.expanduser(path), "a").write(content); return True
-    def delete_file(self, path): Path(os.path.expanduser(path)).unlink(missing_ok=True); return True
-    def copy_file(self, src, dst): Path(os.path.expanduser(dst)).parent.mkdir(parents=True, exist_ok=True); shutil.copy2(os.path.expanduser(src), os.path.expanduser(dst)); return True
+    def list_dir(self, p): return __import__("os").listdir(__import__("os.path").expanduser(p))
+    def list_recursive(self, p): 
+        from pathlib import Path
+        return [str(x) for x in Path(__import__("os.path").expanduser(p)).rglob("*")]
+    def make_dir(self, p):
+        from pathlib import Path
+        Path(__import__("os.path").expanduser(p)).mkdir(parents=True, exist_ok=True); return True
+    def remove_dir(self, p):
+        import shutil, os.path
+        shutil.rmtree(os.path.expanduser(p), ignore_errors=True); return True
+    def make_file(self, p, c=""):
+        from pathlib import Path
+        import os.path
+        Path(os.path.expanduser(p)).parent.mkdir(parents=True, exist_ok=True)
+        Path(os.path.expanduser(p)).write_text(c)
+        return True
+    def read_file(self, p):
+        from pathlib import Path
+        import os.path
+        return Path(os.path.expanduser(p)).read_text()
+    def write_file(self, p, c):
+        from pathlib import Path
+        import os.path
+        Path(os.path.expanduser(p)).parent.mkdir(parents=True, exist_ok=True)
+        Path(os.path.expanduser(p)).write_text(c)
+        return True
+    def append_file(self, p, c):
+        from pathlib import Path
+        import os.path
+        Path(os.path.expanduser(p)).parent.mkdir(parents=True, exist_ok=True)
+        open(os.path.expanduser(p), "a").write(c)
+        return True
+    def delete_file(self, p):
+        from pathlib import Path
+        import os.path
+        Path(os.path.expanduser(p)).unlink(missing_ok=True)
+        return True
+    def copy_file(self, s, d):
+        from pathlib import Path
+        import shutil, os.path
+        Path(os.path.expanduser(d)).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(os.path.expanduser(s), os.path.expanduser(d))
+        return True
+    def move_file(self, s, d):
+        from pathlib import Path
+        import shutil, os.path
+        Path(os.path.expanduser(d)).parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(os.path.expanduser(s), os.path.expanduser(d))
+        return True
+    def rename_file(self, s, d):
+        return self.move_file(s, d)
+    def file_exists(self, p):
+        from pathlib import Path
+        import os.path
+        return Path(os.path.expanduser(p)).exists()
+    def dir_exists(self, p):
+        from pathlib import Path
+        import os.path
+        return Path(os.path.expanduser(p)).is_dir()
+    def is_file(self, p):
+        from pathlib import Path
+        import os.path
+        return Path(os.path.expanduser(p)).is_file()
+    def is_dir(self, p):
+        from pathlib import Path
+        import os.path
+        return Path(os.path.expanduser(p)).is_dir()
+    def get_size(self, p):
+        from pathlib import Path
+        import os.path
+        return Path(os.path.expanduser(p)).stat().st_size if Path(os.path.expanduser(p)).exists() else 0
+    def get_mtime(self, p):
+        from pathlib import Path
+        from datetime import datetime
+        import os.path
+        return datetime.fromtimestamp(Path(os.path.expanduser(p)).stat().st_mtime) if Path(os.path.expanduser(p)).exists() else None
+    def get_ctime(self, p):
+        from pathlib import Path
+        from datetime import datetime
+        import os.path
+        return datetime.fromtimestamp(Path(os.path.expanduser(p)).stat().st_ctime) if Path(os.path.expanduser(p)).exists() else None
