@@ -17,7 +17,7 @@ class FileManager:
         self._register_all()
     
     def register(self, name, func):
-        ""Dynamic add - kung may kulang, dagdag lang dito"""
+        # Dynamic add - kung may kulang, dagdag lang dito
         self.commands[name] = func
         setattr(self, name, func)
     
