@@ -8,11 +8,11 @@ class FM:
         print(f"[POGI] CREATED {p}")
     def move_dir(self, s, d):
         sp, dp = Path(os.path.expanduser(s)), Path(os.path.expanduser(d))
-        if not sp.exists(): print(f"[SKIP] {sp} not found"); return
+        if not sp.exists(): print(f"[SKIP] {sp}"); return
         dp.parent.mkdir(parents=True, exist_ok=True)
         if dp.exists(): shutil.rmtree(str(dp), ignore_errors=True)
         shutil.move(str(sp), str(dp))
-        print(f"[POGI] RENAMED {sp} -> {dp}")
+        print(f"[POGI] RENAMED {sp} -> {dp} OK")
 
 fm = FM()
 
@@ -26,13 +26,13 @@ class H(BaseHTTPRequestHandler):
                 for a,b in [(f"~/storage/shared/{data.get('src')}", f"~/storage/shared/{data.get('dst')}"), (f"/storage/emulated/0/{data.get('src')}", f"/storage/emulated/0/{data.get('dst')}")]: fm.move_dir(a,b)
             else:
                 f=data.get("folder","weroa")
-                for p in [f"~/storage/shared/{f}", f"/storage/emulated/0/{f}"]: fm.make_dir(p)
+                for p in [f"~/storage/shared/{f}", f"/storage/emulated/0/{f}", f"~/storage/shared/Download/{f}"]: fm.make_dir(p)
             self.send_response(200); self.send_header("Content-type","application/json"); self.send_header("Access-Control-Allow-Origin","*"); self.end_headers()
             self.wfile.write(b'{"status":"SUCCESS"}')
     def do_OPTIONS(self):
         self.send_response(200); self.send_header("Access-Control-Allow-Origin","*"); self.send_header("Access-Control-Allow-Methods","POST, GET, OPTIONS"); self.send_header("Access-Control-Allow-Headers","Content-Type"); self.end_headers()
     def do_GET(self):
-        self.send_response(200); self.send_header("Access-Control-Allow-Origin","*"); self.end_headers(); self.wfile.write(b"V4 Chrome Android Ready")
+        self.send_response(200); self.send_header("Access-Control-Allow-Origin","*"); self.end_headers(); self.wfile.write(b"V4 OK")
 
 def watcher():
     print("[WATCHER] Watching autotask.json - NO EXTENSION NEEDED!")
@@ -48,10 +48,13 @@ def watcher():
                             elif c.get("action") in ["move_dir","rename_file"]: fm.move_dir(c.get("src"),c.get("dst"))
                         d["executed"]=True
                         p.write_text(json.dumps(d,indent=2))
-                        print("[WATCHER] DONE! NO CURL! NO EXTENSION!")
+                        print("[WATCHER] DONE!")
                 except Exception as e: print(e)
         time.sleep(2)
 
-print("POGI V4 - CHROME ANDROID READY - NO EXTENSION NEEDED!")
+print("POGI BOSS V4 - CHROME ANDROID READY!")
+print("HTTP: http://localhost:8080")
+print("WATCHER: autotask.json")
+import threading
 threading.Thread(target=watcher,daemon=True).start()
 HTTPServer(("127.0.0.1",8080),H).serve_forever()
